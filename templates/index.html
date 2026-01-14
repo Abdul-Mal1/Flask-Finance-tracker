@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard · Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-lg-5">
+    <div class="p-4 glass shadow-soft">
+      <h3 class="fw-bold mb-1">Add Transaction</h3>
+      <p class="small-muted mb-4">Track income and expenses in seconds.</p>
+
+      <form method="POST" action="{{ url_for('transaction') }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.amount.label }}</label>
+          {{ form.amount(class="form-control", placeholder="e.g. 120.50") }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.transaction_type.label }}</label>
+          {{ form.transaction_type(class="form-select") }}
+        </div>
+
+        <div class="d-grid">
+          {{ form.submit(class="btn btn-dark btn-lg") }}
+        </div>
+      </form>
+
+      <div class="mt-4 small-muted">
+        Tip: Use <span class="fw-semibold">Income</span> for salary, gifts, sales —
+        and <span class="fw-semibold">Expense</span> for bills, food, gas.
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-7">
+    <div class="p-4 glass shadow-soft">
+      <h3 class="fw-bold mb-1">Recent Transactions</h3>
+      <div class="small-muted mb-3">Your latest activity shows here.</div>
+
+      {% if transactions and transactions|length > 0 %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th class="text-end">Amount</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions %}
+            <tr>
+              <td class="small-muted">
+                {{ t.date.strftime("%Y-%m-%d %H:%M") if t.date else "" }}
+              </td>
+
+              <td>
+                {% if t.transaction_type|lower == "income" %}
+                  <span class="badge text-bg-success">Income</span>
+                {% else %}
+                  <span class="badge text-bg-danger">Expense</span>
+                {% endif %}
+              </td>
+
+              <!-- ✅ Amount -->
+              <td class="text-end fw-semibold">
+                {{ "%.2f"|format(t.amount) }}
+              </td>
+
+              <!-- ✅ Action -->
+              <td class="text-end">
+                <form method="POST"
+                      action="{{ url_for('delete_transaction', transaction_id=t.id) }}"
+                      onsubmit="return confirm('Delete this transaction?');"
+                      style="display:inline;">
+                  {{ form.csrf_token }}
+                  <button class="btn btn-sm btn-outline-danger">🗑 Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="p-4 text-center">
+        <div class="display-6">🧾</div>
+        <p class="mb-1 fw-semibold">No transactions yet</p>
+        <p class="small-muted mb-0">Add your first one on the left.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
