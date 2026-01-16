@@ -55,3 +55,48 @@
     box-shadow: 0 12px 30px rgba(0,0,0,.08);
   }
   
+
+/* -------------------------
+   Dark mode (toggle adds .theme-dark on body)
+--------------------------*/
+body.theme-dark{
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(40,60,90,.55) 0%, transparent 55%),
+              radial-gradient(900px 500px at 90% 20%, rgba(90,40,60,.55) 0%, transparent 55%),
+              #0f172a;
+  color: #e5e7eb;
+}
+
+body.theme-dark .glass{
+  background: rgba(20,24,35,.72);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 18px 45px rgba(0,0,0,.35);
+}
+
+body.theme-dark .navbar{
+  background: rgba(20,24,35,.72) !important;
+  border-color: rgba(255,255,255,.08) !important;
+}
+
+body.theme-dark .table{
+  --bs-table-bg: transparent;
+  --bs-table-color: #e5e7eb;
+  --bs-table-striped-color: #e5e7eb;
+}
+
+body.theme-dark .form-control,
+body.theme-dark .form-select{
+  background-color: rgba(15,23,42,.9);
+  border-color: rgba(255,255,255,.12);
+  color: #e5e7eb;
+}
+
+body.theme-dark .btn-outline-secondary,
+body.theme-dark .btn-outline-dark{
+  border-color: rgba(255,255,255,.18);
+  color: #e5e7eb;
+}
+
+body.theme-dark .badge-soft{
+  background: rgba(255,255,255,.10);
+  color: #e5e7eb;
+}

@@ -3,95 +3,324 @@
 
 {% block content %}
 <div class="row g-4">
-  <div class="col-12 col-lg-5">
-    <div class="p-4 glass shadow-soft">
+
+  <!-- LEFT: Forms -->
+  <div class="col-12 col-lg-4">
+    <div class="p-4 glass shadow-soft mb-4">
       <h3 class="fw-bold mb-1">Add Transaction</h3>
-      <p class="small-muted mb-4">Track income and expenses in seconds.</p>
+      <p class="small-muted mb-4">Track income and expenses with categories and dates.</p>
 
       <form method="POST" action="{{ url_for('transaction') }}" novalidate>
-        {{ form.hidden_tag() }}
+        {{ tx_form.hidden_tag() }}
 
-        <div class="mb-3">
-          <label class="form-label">{{ form.amount.label }}</label>
-          {{ form.amount(class="form-control", placeholder="e.g. 120.50") }}
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label">{{ tx_form.amount.label }}</label>
+            {{ tx_form.amount(class="form-control", placeholder="e.g. 120.50") }}
+            {% for error in tx_form.amount.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label">{{ tx_form.transaction_type.label }}</label>
+            {{ tx_form.transaction_type(class="form-select") }}
+            {% for error in tx_form.transaction_type.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label">{{ tx_form.date.label }}</label>
+            {{ tx_form.date(class="form-control", placeholder="YYYY-MM-DD") }}
+            {% for error in tx_form.date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ tx_form.category_id.label }}</label>
+            {{ tx_form.category_id(class="form-select", id="txCategory") }}
+            {% for error in tx_form.category_id.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ tx_form.merchant.label }}</label>
+            {{ tx_form.merchant(class="form-control", placeholder="e.g. Walmart, Uber, Salary") }}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ tx_form.description.label }}</label>
+            {{ tx_form.description(class="form-control", placeholder="Optional notes") }}
+          </div>
+
+          <div class="col-12 mt-2">
+            {{ tx_form.submit(class="btn btn-dark w-100") }}
+          </div>
         </div>
+      </form>
+    </div>
 
-        <div class="mb-3">
-          <label class="form-label">{{ form.transaction_type.label }}</label>
-          {{ form.transaction_type(class="form-select") }}
+    <div class="p-4 glass shadow-soft mb-4">
+      <h5 class="fw-bold mb-2">Categories</h5>
+      <p class="small-muted mb-3">Create your own categories and sub-categories.</p>
+
+      <form method="POST" action="{{ url_for('add_category') }}" novalidate>
+        {{ cat_form.hidden_tag() }}
+        <div class="mb-2">
+          <label class="form-label">{{ cat_form.name.label }}</label>
+          {{ cat_form.name(class="form-control", placeholder="e.g. Food, Transport, Groceries") }}
+          {% for error in cat_form.name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
         </div>
+        <div class="mb-3">
+          <label class="form-label">{{ cat_form.parent_id.label }}</label>
+          {{ cat_form.parent_id(class="form-select") }}
+        </div>
+        {{ cat_form.submit(class="btn btn-outline-dark w-100") }}
+      </form>
+    </div>
 
-        <div class="d-grid">
-          {{ form.submit(class="btn btn-dark btn-lg") }}
+    <div class="p-4 glass shadow-soft">
+      <h5 class="fw-bold mb-2">Budgets</h5>
+      <p class="small-muted mb-3">Set monthly budgets per category with warnings.</p>
+
+      <form method="POST" action="{{ url_for('set_budget') }}" novalidate>
+        {{ budget_form.hidden_tag() }}
+
+        <div class="row g-2">
+          <div class="col-12">
+            <label class="form-label">{{ budget_form.month.label }}</label>
+            {{ budget_form.month(class="form-control", placeholder="YYYY-MM") }}
+            {% for error in budget_form.month.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ budget_form.category_id.label }}</label>
+            {{ budget_form.category_id(class="form-select") }}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label">{{ budget_form.amount.label }}</label>
+            {{ budget_form.amount(class="form-control", placeholder="e.g. 400") }}
+            {% for error in budget_form.amount.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label">{{ budget_form.warning_pct.label }}</label>
+            {{ budget_form.warning_pct(class="form-control", placeholder="0.8") }}
+            {% for error in budget_form.warning_pct.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12 mt-2">
+            {{ budget_form.submit(class="btn btn-outline-dark w-100") }}
+          </div>
         </div>
       </form>
 
-      <div class="mt-4 small-muted">
-        Tip: Use <span class="fw-semibold">Income</span> for salary, gifts, sales —
-        and <span class="fw-semibold">Expense</span> for bills, food, gas.
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-lg-7">
-    <div class="p-4 glass shadow-soft">
-      <h3 class="fw-bold mb-1">Recent Transactions</h3>
-      <div class="small-muted mb-3">Your latest activity shows here.</div>
-
-      {% if transactions and transactions|length > 0 %}
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th class="text-end">Amount</th>
-              <th class="text-end">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for t in transactions %}
-            <tr>
-              <td class="small-muted">
-                {{ t.date.strftime("%Y-%m-%d %H:%M") if t.date else "" }}
-              </td>
-
-              <td>
-                {% if t.transaction_type|lower == "income" %}
-                  <span class="badge text-bg-success">Income</span>
-                {% else %}
-                  <span class="badge text-bg-danger">Expense</span>
-                {% endif %}
-              </td>
-
-              <!-- ✅ Amount -->
-              <td class="text-end fw-semibold">
-                {{ "%.2f"|format(t.amount) }}
-              </td>
-
-              <!-- ✅ Action -->
-              <td class="text-end">
-                <form method="POST"
-                      action="{{ url_for('delete_transaction', transaction_id=t.id) }}"
-                      onsubmit="return confirm('Delete this transaction?');"
-                      style="display:inline;">
-                  {{ form.csrf_token }}
-                  <button class="btn btn-sm btn-outline-danger">🗑 Delete</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="p-4 text-center">
-        <div class="display-6">🧾</div>
-        <p class="mb-1 fw-semibold">No transactions yet</p>
-        <p class="small-muted mb-0">Add your first one on the left.</p>
-      </div>
+      {% if budget_status %}
+        <hr class="my-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-semibold">This month ({{ current_month }})</span>
+          <span class="small-muted">Budget status</span>
+        </div>
+        <div class="vstack gap-2">
+          {% for b in budget_status %}
+            <div class="p-3 rounded-4 border bg-white bg-opacity-50">
+              <div class="d-flex justify-content-between">
+                <div class="fw-semibold">{{ b.category }}</div>
+                <div class="small {% if b.is_over %}text-danger{% elif b.is_warning %}text-warning{% else %}text-success{% endif %}">
+                  {{ b.used_pct }}%
+                </div>
+              </div>
+              <div class="small-muted">
+                Spent ${{ "%.2f"|format(b.spent) }} / ${{ "%.2f"|format(b.amount) }} · Remaining ${{ "%.2f"|format(b.remaining) }}
+              </div>
+              <div class="progress mt-2" role="progressbar" aria-valuenow="{{ b.used_pct }}" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar {% if b.is_over %}bg-danger{% elif b.is_warning %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ b.used_pct }}%"></div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
       {% endif %}
     </div>
   </div>
+
+  <!-- RIGHT: Dashboard + table -->
+  <div class="col-12 col-lg-8">
+    <div class="row g-4">
+
+      <div class="col-12">
+        <div class="p-4 glass shadow-soft">
+          <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center">
+            <div>
+              <h3 class="fw-bold mb-1">Overview</h3>
+              <p class="small-muted mb-0">Income, expenses, and cash flow for your current filter.</p>
+            </div>
+            <form method="GET" action="{{ url_for('index') }}" class="d-flex flex-wrap gap-2 align-items-end">
+              <div>
+                <label class="form-label small mb-1">{{ filter_form.transaction_type.label }}</label>
+                {{ filter_form.transaction_type(class="form-select form-select-sm") }}
+              </div>
+              <div>
+                <label class="form-label small mb-1">{{ filter_form.category_id.label }}</label>
+                {{ filter_form.category_id(class="form-select form-select-sm") }}
+              </div>
+              <div>
+                <label class="form-label small mb-1">Start</label>
+                <input type="date" name="start_date" value="{{ request.args.get('start_date','') }}" class="form-control form-control-sm">
+              </div>
+              <div>
+                <label class="form-label small mb-1">End</label>
+                <input type="date" name="end_date" value="{{ request.args.get('end_date','') }}" class="form-control form-control-sm">
+              </div>
+              <div>
+                <label class="form-label small mb-1">{{ filter_form.search.label }}</label>
+                {{ filter_form.search(class="form-control form-control-sm", placeholder="merchant or notes") }}
+              </div>
+              <div>
+                <button class="btn btn-dark btn-sm" type="submit">Apply</button>
+              </div>
+              <div>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('index') }}">Reset</a>
+              </div>
+            </form>
+          </div>
+
+          <hr class="my-3">
+
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <div class="p-3 rounded-4 border bg-white bg-opacity-50">
+                <div class="small-muted">Total Income</div>
+                <div class="fs-4 fw-bold">${{ "%.2f"|format(total_income) }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="p-3 rounded-4 border bg-white bg-opacity-50">
+                <div class="small-muted">Total Expenses</div>
+                <div class="fs-4 fw-bold">${{ "%.2f"|format(total_expense) }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="p-3 rounded-4 border bg-white bg-opacity-50">
+                <div class="small-muted">Net Balance</div>
+                <div class="fs-4 fw-bold">${{ "%.2f"|format(net_balance) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="col-12 col-xl-7">
+        <div class="p-4 glass shadow-soft h-100">
+          <h5 class="fw-bold mb-2">Monthly cash flow</h5>
+          <p class="small-muted mb-3">Income vs expenses over time (based on your current filter).</p>
+          <canvas id="cashflowChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-5">
+        <div class="p-4 glass shadow-soft h-100">
+          <h5 class="fw-bold mb-2">Expense breakdown</h5>
+          <p class="small-muted mb-3">Where your money goes (expenses only).</p>
+          <canvas id="categoryChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="col-12">
+        <div class="p-4 glass shadow-soft">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0">Transactions</h4>
+            <span class="small-muted">{{ transactions|length }} item(s)</span>
+          </div>
+
+          {% if transactions %}
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr class="text-muted small">
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th class="text-end">Amount</th>
+                    <th>Category</th>
+                    <th>Merchant</th>
+                    <th>Description</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for t in transactions %}
+                    <tr>
+                      <td class="text-nowrap">{{ t.date.strftime("%Y-%m-%d") }}</td>
+                      <td>
+                        <span class="badge {% if t.transaction_type == 'Income' %}bg-success{% else %}bg-danger{% endif %}">
+                          {{ t.transaction_type }}
+                        </span>
+                      </td>
+                      <td class="text-end fw-semibold">${{ "%.2f"|format(t.amount) }}</td>
+                      <td>{{ t.category.full_name() if t.category else "" }}</td>
+                      <td>{{ t.merchant or "" }}</td>
+                      <td class="text-truncate" style="max-width: 220px;">{{ t.description or "" }}</td>
+                      <td class="text-end">
+                        <form method="POST" action="{{ url_for('delete_transaction', tx_id=t.id) }}">
+                          {{ tx_form.csrf_token }}
+                          <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                        </form>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="p-4 text-center">
+              <div class="display-6">🧾</div>
+              <p class="mb-1 fw-semibold">No transactions found</p>
+              <p class="small-muted mb-0">Try changing your filters or add a new transaction.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const months = {{ months | tojson }};
+  const incomeSeries = {{ income_series | tojson }};
+  const expenseSeries = {{ expense_series | tojson }};
+
+  const ctx1 = document.getElementById('cashflowChart');
+  if (ctx1 && months.length) {
+    new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [
+          { label: 'Income', data: incomeSeries },
+          { label: 'Expenses', data: expenseSeries }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  const catLabels = {{ cat_labels | tojson }};
+  const catValues = {{ cat_values | tojson }};
+  const ctx2 = document.getElementById('categoryChart');
+  if (ctx2 && catLabels.length) {
+    new Chart(ctx2, {
+      type: 'pie',
+      data: {
+        labels: catLabels,
+        datasets: [{ data: catValues }]
+      },
+      options: { responsive: true }
+    });
+  }
+</script>
+
 {% endblock %}
